@@ -2,6 +2,8 @@
 #include <HTTPClient.h>
 #include <Arduino_JSON.h>
 #include <WiFiClientSecure.h>
+#include <SoftwareSerial.h>
+#include <TinyGPS++.h>
 
 const char* ssid     = "CTCP Hung Viet Solution";
 const char* password = "hungvietsolution";
@@ -9,6 +11,9 @@ const String serverHttp = "http://192.168.1.80:9080";
 const String serverHttps = "https://vid-service.herokuapp.com";
 
 WiFiClientSecure *client = new WiFiClientSecure;
+
+TinyGPSPlus gps;
+SoftwareSerial ssGps(16, 17);
 
 void setup()
 {
@@ -18,24 +23,35 @@ void setup()
 
 void loop()
 {
-  Serial.print("connecting to ");
-  Serial.println(serverHttps);
-
-  String payload = httpGet(serverHttps, "/alarm");
-  Serial.println("Payload: ");
-  Serial.println(payload);
-//  JSONVar oPayload = JSON.parse(payload);
-//
-//  Serial.print("name: ");
-//  Serial.println(oPayload["name"]);
-//  Serial.print("year old: ");
-//  Serial.println(oPayload["year_old"]);
-//  Serial.print("school: ");
-//  Serial.println(oPayload["school"]);
-
-  while (1) {
-    reconnectWifi();  
+  if (ssGps.available()) {
+    if (gps.encode(ssGps.read())) {
+      if (gps.location.isValid()) {
+        Serial.print("lat: ");
+        Serial.println(String(gps.location.lat(), 6));
+        Serial.print("lng: ");
+        Serial.println(String(gps.location.lng(), 6));
+      }
+    }
   }
+  
+//  Serial.print("connecting to ");
+//  Serial.println(serverHttps);
+//
+//  String payload = httpGet(serverHttps, "/alarm");
+//  Serial.println("Payload: ");
+//  Serial.println(payload);
+////  JSONVar oPayload = JSON.parse(payload);
+////
+////  Serial.print("name: ");
+////  Serial.println(oPayload["name"]);
+////  Serial.print("year old: ");
+////  Serial.println(oPayload["year_old"]);
+////  Serial.print("school: ");
+////  Serial.println(oPayload["school"]);
+//
+//  while (1) {
+//    reconnectWifi();  
+//  }
 }
 
 String httpGet(String server, String api) {
